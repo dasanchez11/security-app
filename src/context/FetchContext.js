@@ -1,6 +1,6 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useEffect } from 'react';
 import axios from 'axios';
-import { AuthContext } from './AuthContext';
+
 
 export const FetchContext = createContext({
   authAxios:null,
@@ -9,31 +9,21 @@ export const FetchContext = createContext({
 
 
 const FetchProvider = ({ children }) => {
-  const authContext = useContext(AuthContext)
   const authAxios = axios.create({
-    baseURL: 'http://localhost:3001/app/'
+    baseURL: '/app/'
   })
-  authAxios.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${authContext.authState.token}`
-    return config
-  },
-    error => {
-      return Promise.reject(error)
-    }
-  )
-
   const kanbanAxios = axios.create({
-    baseURL:'http://localhost:3001/kanban/'
+    baseURL:'/kanban/'
   })
   
-  kanbanAxios.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${authContext.authState.token}`
-    return config
-  },
-    error => {
-      return Promise.reject(error)
+  useEffect(()=>{
+    const getCsrfToken = async() =>{
+      const {data} = await authAxios.get('/csrf-token');
+      authAxios.defaults.headers['X-CSRF-Token'] = data.csrfToken
     }
-  )
+    getCsrfToken();
+  },[])
+  
 
   const value = {authAxios,kanbanAxios}
   return (

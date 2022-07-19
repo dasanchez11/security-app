@@ -12,18 +12,16 @@ export const AuthContext = createContext({
 
 const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
-  const token = localStorage.getItem('token');
   const userInfo = localStorage.getItem('userInfo');
   const expiresAt = localStorage.getItem('expiresAt');
 
   const [authState, setAuthState] = useState({
-    token,
+    token:null,
     expiresAt,
     userInfo: userInfo ? JSON.parse(userInfo) : {}
   });
 
   const setAuthInfo = ({ token, userInfo, expiresAt }) => {
-    localStorage.setItem('token', token)
     localStorage.setItem('userInfo', JSON.stringify(userInfo))
     localStorage.setItem('expiresAt', expiresAt)
 
@@ -31,7 +29,7 @@ const AuthProvider = ({ children }) => {
   }
 
   const isAuthenticated = () =>{
-    if(!authState.token || !authState.expiresAt){
+    if(!authState.expiresAt){
       return false
     }
     return new Date().getTime()/1000 < authState.expiresAt
@@ -42,7 +40,6 @@ const AuthProvider = ({ children }) => {
   }
 
   const logout = () =>{
-    localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
     localStorage.removeItem('expiresAt')
     setAuthState({
