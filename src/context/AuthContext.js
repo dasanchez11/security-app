@@ -1,12 +1,16 @@
 import React, { createContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {publicFetch} from '../util/fetch'
 
 export const AuthContext = createContext({
   authState: null,
   setAuthState: () => {},
   isAuthenticated:()=>{},
   logout:() =>{},
-  isAdmin:()=>{}
+  isAdmin:()=>{},
+  getNewToken:()=>{},
+  getAccessToken: ()=>{},
+  getNewTokenForRequest: ()=>{}
 });
 
 
@@ -41,6 +45,30 @@ const AuthProvider = ({ children }) => {
     return authState.userInfo.role === 'admin'
   }
 
+  const getNewToken = async() =>{
+    try {
+      const {data} = await publicFetch.get('token/refresh')
+      setAuthState({...authState,token:data.token})
+    } catch (error) {
+      return error
+    }
+  }
+
+  const getAccessToken = () =>{
+    return localStorage.getItem('token')
+  }
+
+  const getNewTokenForRequest = async(failedRequest) =>{
+    const {data} = await publicFetch.get('token/refresh')
+
+    failedRequest.response.config.headers['Authorization'] = `Bearer ${data.token}`
+
+    localStorage.setItem('token',data.token)
+    setAuthState({...authState,token:data.token})
+
+    return Promise.resolve()
+  }
+
   const logout = () =>{
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
@@ -58,7 +86,10 @@ const AuthProvider = ({ children }) => {
     setAuthState: (authInfo) => setAuthInfo(authInfo),
     isAuthenticated,
     logout,
-    isAdmin
+    isAdmin,
+    getNewToken,
+    getAccessToken,
+    getNewTokenForRequest
   }
   return (
     <AuthContext.Provider value={value}>

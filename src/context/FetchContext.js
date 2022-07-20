@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from './AuthContext';
+import createAuthRefreshInterceptor from 'axios-auth-refresh'
 
 export const FetchContext = createContext({
   authAxios:null,
@@ -11,10 +12,11 @@ export const FetchContext = createContext({
 const FetchProvider = ({ children }) => {
   const authContext = useContext(AuthContext)
   const authAxios = axios.create({
-    baseURL: 'http://localhost:3001/app/'
+    baseURL: '/app/'
   })
+
   authAxios.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${authContext.authState.token}`
+    config.headers.Authorization = `Bearer ${authContext.getAccessToken()}`
     return config
   },
     error => {
@@ -22,8 +24,14 @@ const FetchProvider = ({ children }) => {
     }
   )
 
+  createAuthRefreshInterceptor(authAxios,authContext.getNewTokenForRequest,{
+    skipWhileRefreshing:false,
+    statusCodes: [500]
+  })
+  
+
   const kanbanAxios = axios.create({
-    baseURL:'http://localhost:3001/kanban/'
+    baseURL:'/kanban/'
   })
   
   kanbanAxios.interceptors.request.use(config => {

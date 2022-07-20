@@ -9,7 +9,7 @@ const AdminRoute = ({ children, ...rest }) => {
   const authContext = useContext(AuthContext)
   const { isAdmin,isAuthenticated } = authContext
   return (<>
-    {isAdmin() && isAuthenticated ? <AppShell>{children}</AppShell> : <Navigate to='/' />}
+    {isAdmin() && isAuthenticated() ? <AppShell>{children}</AppShell> : <Navigate to='/' />}
   </>
   )
 }
