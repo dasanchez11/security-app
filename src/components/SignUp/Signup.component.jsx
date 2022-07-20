@@ -4,11 +4,11 @@ import TextField from '../TextField/TextField.component'
 import { Formik, Form } from 'formik'
 import CustomButton from '../CustomButton/CustomButton'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { publicFetch } from '../../util/fetch'
 import FormSuccess from '../FormSuccess/FormSuccess.component'
 import FormError from '../FormError/FormError.component'
 import { AuthContext } from '../../context/AuthContext'
 import ReCAPTCHA from "react-google-recaptcha";
+import { FetchContext } from '../../context/FetchContext'
 
 
 
@@ -20,6 +20,8 @@ const Signup = () => {
     const [loading, setLoading] = useState(false)
     const [redirectOnSignup, setRedirectOnSignup] = useState(false)
     const authContext = useContext(AuthContext)
+    const fetchContext = useContext(FetchContext)
+
     const reRef = useRef();
 
 
@@ -43,7 +45,7 @@ const Signup = () => {
             reRef.current.reset()
             const credentialValues = { ...credentials, captchaToken }
             setLoading(true)
-            const { data } = await publicFetch.put('signup', credentialValues)
+            const { data } = await fetchContext.publicAxios.put('signup', credentialValues)
             authContext.setAuthState(data)
             setSignUpSuccess(data.message)
             setSignUpError('')

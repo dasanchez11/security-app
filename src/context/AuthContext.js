@@ -1,5 +1,6 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useEffect, useState,useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {FetchContext} from './FetchContext'
 
 export const AuthContext = createContext({
   authState: null,
@@ -11,54 +12,52 @@ export const AuthContext = createContext({
 
 
 const AuthProvider = ({ children }) => {
+  const fetchContext = useContext(FetchContext)
   const navigate = useNavigate()
-  const token = localStorage.getItem('token');
-  const userInfo = localStorage.getItem('userInfo');
-  const expiresAt = localStorage.getItem('expiresAt');
+ 
 
   const [authState, setAuthState] = useState({
-    token,
-    expiresAt,
-    userInfo: userInfo ? JSON.parse(userInfo) : {}
+    userInfo: null,
+    isAuthenticated: false
   });
 
-  const setAuthInfo = ({ token, userInfo, expiresAt }) => {
-    localStorage.setItem('token', token)
-    localStorage.setItem('userInfo', JSON.stringify(userInfo))
-    localStorage.setItem('expiresAt', expiresAt)
-
-    setAuthState({ token, userInfo, expiresAt })
-  }
-
-  const isAuthenticated = () =>{
-    if(!authState.token || !authState.expiresAt){
-      return false
+  useEffect(()=>{
+    const getUserInfo = async() =>{
+      try {
+        const {data} = await fetchContext.authAxios.get('user-info')
+        setAuthState({userInfo:data.user, isAuthenticated:true})
+      } catch (error) {
+        setAuthState({userInfo:{},isAuthenticated:false})
+      }
     }
-    return new Date().getTime()/1000 < authState.expiresAt
-  }
+    getUserInfo()
+  },[fetchContext])
 
-  const isAdmin = () =>{
-    return authState.userInfo.role === 'admin'
-  }
-
-  const logout = () =>{
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    localStorage.removeItem('expiresAt')
+  const setAuthInfo = ({  userInfo }) => {
     setAuthState({
-      token:null,
-      userInfo:{},
-      expiresAt:null
+      userInfo,
+      isAuthenticated: userInfo && userInfo._id ? true : false
     })
-    navigate('/')
+  }
+
+
+  const logout = async () =>{
+    try {
+      await fetchContext.authAxios.post('logout')
+      setAuthState({
+        userInfo: {},
+        isAuthenticated: false
+      })
+      navigate('/')
+    } catch (error) {
+      
+    }
   }
 
   const value = {
     authState,
     setAuthState: (authInfo) => setAuthInfo(authInfo),
-    isAuthenticated,
     logout,
-    isAdmin
   }
   return (
     <AuthContext.Provider value={value}>

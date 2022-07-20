@@ -6,12 +6,10 @@ import { AuthContext } from '../context/AuthContext'
 
 
 const AuthenticatedRoute = ({ children, ...rest }) => {
-  const authContext = useContext(AuthContext)
-  const { isAuthenticated } = authContext
-  const auth = isAuthenticated()
+  const {authState} = useContext(AuthContext)
 
   return (<>
-    {auth ? <AppShell>{children}</AppShell> : <Navigate to='/' />}
+    {authState.isAuthenticated ? <AppShell>{children}</AppShell> : <Navigate to='/' />}
   </>
   )
 }

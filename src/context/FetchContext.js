@@ -1,41 +1,50 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext,useEffect } from 'react';
 import axios from 'axios';
-import { AuthContext } from './AuthContext';
+
 
 export const FetchContext = createContext({
   authAxios:null,
-  kanbanAxios:null
+  kanbanAxios:null,
+  publicAxios:null
 });
 
 
 const FetchProvider = ({ children }) => {
-  const authContext = useContext(AuthContext)
-  const authAxios = axios.create({
-    baseURL: 'http://localhost:3001/app/'
+
+
+  const publicAxios = axios.create({
+    baseURL: '/auth/'
   })
-  authAxios.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${authContext.authState.token}`
-    return config
-  },
-    error => {
-      return Promise.reject(error)
-    }
-  )
+
+  const authAxios = axios.create({
+    baseURL: '/app/'
+  })
 
   const kanbanAxios = axios.create({
-    baseURL:'http://localhost:3001/kanban/'
+    baseURL:'/kanban/'
   })
   
-  kanbanAxios.interceptors.request.use(config => {
-    config.headers.Authorization = `Bearer ${authContext.authState.token}`
-    return config
-  },
-    error => {
-      return Promise.reject(error)
-    }
-  )
+  
+  useEffect(()=>{
+    const getCsrfToken =async() =>{
+      try {
+        const {data} = await publicAxios.get('csrf-token')
+        publicAxios.defaults.headers['X-CSRF-Token'] = data.csrfToken
+        authAxios.defaults.headers['X-CSRF-Token'] = data.csrfToken
+        kanbanAxios.defaults.headers['X-CSRF-Token'] = data.csrfToken
 
-  const value = {authAxios,kanbanAxios}
+
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    getCsrfToken()
+  },[publicAxios,authAxios,kanbanAxios])
+
+  
+
+  const value = {authAxios,kanbanAxios,publicAxios}
   return (
     <FetchContext.Provider
       value={value}

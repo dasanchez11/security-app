@@ -6,10 +6,9 @@ import { AuthContext } from '../context/AuthContext'
 
 
 const AdminRoute = ({ children, ...rest }) => {
-  const authContext = useContext(AuthContext)
-  const { isAdmin,isAuthenticated } = authContext
+  const {authState} = useContext(AuthContext)
   return (<>
-    {isAdmin() && isAuthenticated ? <AppShell>{children}</AppShell> : <Navigate to='/' />}
+    {authState.userInfo.role === 'admin' && authState.isAuthenticated ? <AppShell>{children}</AppShell> : <Navigate to='/' />}
   </>
   )
 }

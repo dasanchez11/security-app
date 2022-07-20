@@ -6,9 +6,9 @@ import CustomButton from '../CustomButton/CustomButton'
 import { useNavigate, Navigate } from 'react-router-dom'
 import FormSuccess from '../FormSuccess/FormSuccess.component'
 import FormError from '../FormError/FormError.component'
-import { publicFetch } from '../../util/fetch'
 import { useContext } from 'react'
 import { AuthContext } from '../../context/AuthContext'
+import { FetchContext } from '../../context/FetchContext'
 
 
 const SignIn = () => {
@@ -22,14 +22,16 @@ const SignIn = () => {
         password: Yup.string().min(8, 'Must have at least 8 characters').required('Password is Required'),
     })
     const authContext = useContext(AuthContext)
-    const {isAuthenticated} = authContext
+    const fetchContext = useContext(FetchContext)
+    const {isAuthenticated} = authContext.authState
+
     const handleRegister = () => {
         navigate('/signup')
     }
     const submitCredentials = async (credentials) => {
         try {
             setLoading(true)
-            const { data } = await publicFetch.post('signin', credentials)
+            const { data } = await fetchContext.publicAxios.post('signin', credentials)
             authContext.setAuthState(data)
             setSigninSuccess(data.message)
             setSigninError('')
@@ -38,6 +40,7 @@ const SignIn = () => {
             }, 700)
         } catch (error) {
             setLoading(false)
+            console.log(error)
             const { message } = error.response.data
             setSigninError(message)
             setSigninSuccess('')
@@ -47,7 +50,7 @@ const SignIn = () => {
 
     return (
         <>
-            {isAuthenticated() && <Navigate to='/dashboard' />}
+            {isAuthenticated && <Navigate to='/dashboard' />}
             {redirectOnSignin && <Navigate to='/dashboard' />}
             {signinSuccess && (
                 <FormSuccess text={signinSuccess} />
