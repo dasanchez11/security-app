@@ -24,7 +24,7 @@ const SignInSignUp = () => {
             <div className='w-full md:w-[700px] h-[95vh] flex flex-col items-center justify-center text-Main'>
                 <div>
                     <div>
-                        <h2 className='font-semibold text-3xl pb-4 text-black'>{signup ? `Register for Free!`:'Sign In to Cubes Platform!'}</h2>
+                        <h2 className='font-semibold text-3xl pb-4 text-black'>{signup ? `Register for Free!`:'Sign In to Logistics Platform!'}</h2>
                         <h5 className='font-light text-gray-600 text-base pb-10'>Enter your details below</h5>
                     </div>
                         {signup ? <SignUp/> :<SignIn/> }      
